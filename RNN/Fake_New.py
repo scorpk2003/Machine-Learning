@@ -5,20 +5,24 @@ from keras.layers import Embedding, LSTM, Dense, Dropout, SpatialDropout1D
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.callbacks import EarlyStopping
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 import pickle
 
 # Bước 1: Tải dữ liệu
 data = pd.read_csv('train.csv', delimiter = ";")  # Đảm bảo tên file là đúng với file dữ liệu của bạn
+data_test = pd.read_csv('test.csv', delimiter = ";")
 # Giả định dữ liệu có 2 cột: 'text' (nội dung bài báo) và 'label' (0 là tin thật, 1 là tin giả)
 
 # Xử lý dữ liệu
-X = data['text'].values
-y = data['label'].values
+X_train = data['title'].values + data['text'].values
+Y_train = data['label'].values
+
+X_test = data_test['title'].values + data_test['text'].values
+Y_test = data_test['label'].values
 
 # Chia tập dữ liệu thành train/test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# x_train, y_train = train_test_split(X_train, Y_train)
+# x_test, y_test = 
 
 # Tokenization
 tokenizer = Tokenizer(num_words=5000, oov_token='<OOV>')
@@ -46,17 +50,17 @@ model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy']
 
 # Bước 3: Huấn luyện mô hình
 early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
-history = model.fit(X_train_padded, y_train, validation_data=(X_test_padded, y_test),
+history = model.fit(X_train_padded, Y_train, validation_data=(X_test_padded, Y_test),
                     epochs=10, batch_size=64, callbacks=[early_stopping], verbose=1)
 
 # Bước 4: Đánh giá mô hình và xuất độ chính xác
 y_pred_prob = model.predict(X_test_padded)
 y_pred = (y_pred_prob > 0.5).astype(int)
 
-accuracy = accuracy_score(y_test, y_pred)
+accuracy = accuracy_score(Y_test, y_pred)
 print(f"Độ chính xác của mô hình: {accuracy:.4f}")
 print("Báo cáo phân loại:")
-print(classification_report(y_test, y_pred))
+print(classification_report(Y_test, y_pred))
 
 # Lưu mô hình
 model.save('fake_news_rnn_model.h5')
