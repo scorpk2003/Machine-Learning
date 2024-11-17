@@ -20,10 +20,6 @@ Y_train = data['label'].values
 X_test = data_test['title'].values + data_test['text'].values
 Y_test = data_test['label'].values
 
-# Chia tập dữ liệu thành train/test
-# x_train, y_train = train_test_split(X_train, Y_train)
-# x_test, y_test = 
-
 # Tokenization
 tokenizer = Tokenizer(num_words=5000, oov_token='<OOV>')
 tokenizer.fit_on_texts(X_train)
@@ -33,14 +29,13 @@ X_train_sequences = tokenizer.texts_to_sequences(X_train)
 X_test_sequences = tokenizer.texts_to_sequences(X_test)
 
 # Đệm chuỗi để có độ dài bằng nhau
-max_sequence_len = 250
-X_train_padded = pad_sequences(X_train_sequences, maxlen=max_sequence_len, padding='post')
-X_test_padded = pad_sequences(X_test_sequences, maxlen=max_sequence_len, padding='post')
+X_train_padded = pad_sequences(X_train_sequences, maxlen=250, padding='post')
+X_test_padded = pad_sequences(X_test_sequences, maxlen=250, padding='post')
 
 # Bước 2: Tạo mô hình LSTM
 embedding_dim = 128
 model = Sequential([
-    Embedding(input_dim=5000, output_dim=embedding_dim, input_length=max_sequence_len),
+    Embedding(input_dim=5000, output_dim=embedding_dim, input_length=250),
     SpatialDropout1D(0.2),
     LSTM(100, dropout=0.2, recurrent_dropout=0.2),
     Dense(1, activation='sigmoid')
@@ -63,8 +58,8 @@ print("Báo cáo phân loại:")
 print(classification_report(Y_test, y_pred))
 
 # Lưu mô hình
-model.save('fake_news_rnn_model.h5')
+model.save('fake_news_lstm.h5')
 
 # Lưu tokenizer để dùng lại khi dự đoán
-with open('tokenizer.pkl', 'wb') as handle:
+with open('tokenizer_lstm.pkl', 'wb') as handle:
     pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
